@@ -72,8 +72,4 @@ jobs:
 
       - name: Run Code Review
         run: |
-          agy --mode plan -p "Review menu-service code and check that all " \
-          "classes are properly documented and provide suggestions on how to " \
-          "improve the documentation in the code and return findings as text in " \
-          "markdown format to the console" >> $GITHUB_STEP_SUMMARY
-
+          agy --mode plan -p "Review menu-service code and check that all classes are properly documented and provide suggestions on how to improve the documentation in the code and return findings as text in markdown format to the console" >> $GITHUB_STEP_SUMMARY
