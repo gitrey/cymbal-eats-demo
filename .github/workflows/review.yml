@@ -8,7 +8,7 @@ on:
       - "bugfix/**"
 
 jobs:
-  autonomous-docs-audit:
+  agy-code-review:
     runs-on: ubuntu-latest
     name: Antigravity Code Review
     permissions:
