@@ -1,29 +1,78 @@
-# AI powered code reviews using Gemini CLI
-name: Code Reviews
-run-name: Reviewing ${{ github.actor }}'s code changes  🚀
-#on: [push, workflow_dispatch]
-on: []
-env:
-  GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
+name: Antigravity Code Review
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "bugfix/**"
+
 jobs:
-  Gemini-CLI-Code-Reviews:
+  autonomous-docs-audit:
     runs-on: ubuntu-latest
+    name: Antigravity Code Review
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AGY_ADC_AUTH: "1"
+      GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+      GOOGLE_CLOUD_QUOTA_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+      GOOGLE_CLOUD_LOCATION: ${{ secrets.GOOGLE_CLOUD_LOCATION }}
+
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - name: List files in the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Install Antigravity CLI
         run: |
-          ls ${{ github.workspace }}
+          curl -fsSL https://antigravity.google/cli/install.sh | bash
 
-      - run: cd ${{ github.workspace }}/menu-service
-      - run: npm install -g @google/gemini-cli
+      - name: Configure Antigravity CLI Settings
+        run: |
+          mkdir -p ~/.gemini/antigravity-cli
+          cat <<EOF > ~/.gemini/antigravity-cli/settings.json
+          {
+            "colorScheme": "dark",
+            "gcp": {
+              "project": "${{ secrets.GOOGLE_CLOUD_PROJECT }}",
+              "location": "${{ secrets.GOOGLE_CLOUD_LOCATION }}"
+            },
+            "model": "Gemini 3.8 Flash (Low)",
+            "trustedWorkspaces": [
+              "${GITHUB_WORKSPACE%/*}"
+            ],
+            "permissions": {
+              "allow": [
+                "read_file(*)",
+                "command(git diff)",
+                "command(git log)",
+                "command(git status)",
+                "command(git show)",
+                "command(git branch)",
+                "command(grep)",
+                "command(find)"
+              ],
+              "deny": [
+                "write_file(*)",
+                "command(git push)",
+                "command(git commit)",
+                "command(rm)",
+                "command(curl)"
+              ]
+            }
+          }
+          EOF
 
-      - name: Documentation Coverage Review
-        run: echo '## Documentation Coverage Review Results 🚀' >> $GITHUB_STEP_SUMMARY
-      - run: gemini -p 'review menu-service java code and check that all classes are properly documented and provide suggestions on how to improve the documentation in the code and return findings as text in markdown format to the console' >> $GITHUB_STEP_SUMMARY
-        shell: bash
+      - name: Authenticate to Google Cloud via WIF
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - name: Test Coverage Review
-        run: echo '## Test Coverage Review Results 🚀' >> $GITHUB_STEP_SUMMARY
-      - run: gemini -p 'review menu-service java code and check that all classes and methods have test coverage and provide suggestions on how to improve the test coverage in the code and return findings as text in markdown format to the console' -y >> $GITHUB_STEP_SUMMARY
-        shell: bash
+      - name: Run Code Review
+        run: |
+          agy --mode plan -p "Review menu-service code and check that all
+          classes are properly documented and provide suggestions on how to
+          improve the documentation in the code and return findings as text in
+          markdown format to the console" >> $GITHUB_STEP_SUMMARY
