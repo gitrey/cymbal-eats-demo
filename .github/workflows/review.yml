@@ -76,3 +76,4 @@ jobs:
           classes are properly documented and provide suggestions on how to
           improve the documentation in the code and return findings as text in
           markdown format to the console" >> $GITHUB_STEP_SUMMARY
+
