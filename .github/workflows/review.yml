@@ -38,7 +38,7 @@ jobs:
               "project": "${{ secrets.GOOGLE_CLOUD_PROJECT }}",
               "location": "${{ secrets.GOOGLE_CLOUD_LOCATION }}"
             },
-            "model": "Gemini 3.8 Flash (Low)",
+            "model": "${{ secrets.GEMINI_MODEL }}",
             "trustedWorkspaces": [
               "${GITHUB_WORKSPACE%/*}"
             ],
